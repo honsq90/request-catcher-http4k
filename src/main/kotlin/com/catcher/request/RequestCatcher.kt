@@ -2,6 +2,7 @@ package com.catcher.request
 
 import com.catcher.request.dto.CaughtHeader
 import com.catcher.request.dto.CaughtRequest
+import com.catcher.request.models.HomePageViewModel
 import com.catcher.request.models.RequestCatcherPageViewModel
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.reactivex.rxjava3.subjects.PublishSubject
@@ -42,6 +43,12 @@ private fun catcherHandler(request: Request): Response {
 }
 
 val app: HttpHandler = routes(
+    "" bind GET to {
+        val renderer = ThymeleafTemplates().CachingClasspath()
+        val view = Body.viewModel(renderer, TEXT_HTML).toLens()
+        val viewModel = HomePageViewModel()
+        Response(OK).with(view of viewModel)
+    },
     "/{name}" bind routes(
         "" bind GET to {
             val name = it.path("name")

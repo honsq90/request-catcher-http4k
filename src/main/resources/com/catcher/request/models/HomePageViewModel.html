@@ -1,0 +1,52 @@
+<html data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
+    <script src="https://unpkg.com/vue@next"></script>
+    <title>Request Catcher</title>
+
+    <style>
+        main {
+            height: calc(100vh - 3.5625rem);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="row">
+    <a href="/" class="logo col-sm-3 col-md">Request Catcher - http4k</a>
+</header>
+
+<main id="pathForm">
+    <form v-on:submit.prevent="onSubmit" >
+        <label for="path">Type a path</label>
+        <input type="text" v-model="path" id="path" placeholder="e.g. hello" required/>
+        <button type="submit" class="button primary">Start listening...</button>
+    </form>
+</main>
+
+<script>
+    const PathForm = {
+        data() {
+            return {
+                path: "",
+            };
+        },
+        methods: {
+            onSubmit(event) {
+                console.log(`Redirecting to /${this.path}...`)
+                window.location = this.path
+            }
+        }
+    };
+
+    Vue.createApp(PathForm).mount('#pathForm');
+</script>
+</body>
+</html>
