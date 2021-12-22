@@ -1,49 +1,85 @@
-<html>
+<html data-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://unpkg.com/vue@next"></script>
-    <link rel="stylesheet" href="https://unpkg.com/bulma@0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
     <title>Request Catcher</title>
+
+    <style>
+        #requests {
+            height: calc(100vh - 3.5625rem);
+            overflow: hidden;
+        }
+        #requests-content {
+            height: 100%;
+            overflow-y: scroll;
+        }
+        #requests-navbar a {
+            animation: new-item 2s;
+        }
+
+        @keyframes new-item {
+            0% {
+                background-color: lightgreen;
+                transform: scale(1.05);
+            }
+            100% {
+                background-color: inherit;
+                transform: scale(1);
+            }
+        }
+    </style>
 </head>
 
 <body>
-<section class="section" id="requests">
-    <article class="message" v-for="request in requests">
-        <div class="message-header">
-            <p> {{ request.timestamp }} - {{ request.method }} {{ request.path }}</p>
-        </div>
-        <div class="message-body">
-            <div class="columns">
-                <div class="column is-one-quarter" style="word-break: break-all;">
-                    <div v-for="header in request.headers">
-                        <strong>{{ header.key }}</strong>: <span>{{header.value}}</span>
+
+<header class="row">
+    <span class="logo col-sm-3 col-md">Request Catcher - http4k</span>
+    <span class="logo col-sm col-md" id="socketStatus">Waiting...</span>
+</header>
+
+<div class="row" id="requests">
+    <input id="doc-drawer-checkbox" class="drawer" value="on" type="checkbox">
+    <nav class="col-md-4" id="requests-navbar">
+        <a v-bind:href="'#' + request.uuid" v-for="request in requests" v-bind:key="request.uuid">
+            {{ request.timestamp }}: {{request.method}} {{request.path}}
+        </a>
+    </nav>
+    <main class="col-md-8" id="requests-content">
+        <div class="card fluid" v-bind:id="request.uuid" v-for="request in requests" v-bind:key="request.uuid">
+            <h2 class="section double-padded">
+                {{ request.timestamp }} - {{request.method}} {{request.path}}
+            </h2>
+            <div class="section">
+                <div class="container">
+                    <div class="row" style="word-break: break-all;">
+                        <div class="col-sm-12" v-for="header in request.headers">
+                            <strong>{{ header.key }}</strong>: <span>{{header.value}}</span>
+                        </div>
                     </div>
                 </div>
-                <div class="column">
-                    {{ request.body }}
-                </div>
             </div>
-
+            <div class="section">
+                {{ request.body }}
+            </div>
         </div>
-    </article>
-</section>
-<footer class="footer">
-    <div class="content has-text-centered">
-        <p id="socketStatus">
-            Waiting...
-        </p>
-    </div>
+    </main>
+</div>
+
+<footer class="sticky">
+    <p>Built with <a href="https://www.http4k.org/">http4k</a>, <a href="https://v3.vuejs.org/">Vue.js</a> and <a href="https://minicss.org/">mini.css</a></p>
 </footer>
 
 <script>
-    const socketUrl = `ws://${window.location.host}/[[${model.name}]]`;
+    const path = `[[${model.name}]]`;
+    const socketUrl = `ws://${window.location.host}/${path}`;
     const socket = new WebSocket(socketUrl);
     socket.addEventListener("open", () => {
-        document.getElementById("socketStatus").innerText = `Listening to ${socketUrl}...`;
+        document.getElementById("socketStatus").innerText = `Listening to /${path}...`;
     });
     socket.addEventListener("close", () => {
-        document.getElementById("socketStatus").innerText = `Failed to connect to ${socketUrl}`;
+        document.getElementById("socketStatus").innerText = `Disconnected from /${path}`;
     });
 
     const RequestList = {
@@ -51,6 +87,11 @@
             return {
                 requests: [],
             };
+        },
+        computed: {
+            recentRequests: function () {
+                return this.requests.reverse();
+            },
         },
         mounted() {
             socket.addEventListener("message", (message) => {
