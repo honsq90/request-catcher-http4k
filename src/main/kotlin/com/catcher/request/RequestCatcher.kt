@@ -49,7 +49,7 @@ val app: HttpHandler = routes(
         val viewModel = HomePageViewModel()
         Response(OK).with(view of viewModel)
     },
-    "/{name}" bind routes(
+    "/{name:.*}" bind routes(
         "" bind GET to {
             val name = it.path("name")
             println("Viewing $name...")
@@ -66,7 +66,7 @@ val app: HttpHandler = routes(
 )
 
 val ws = websockets(
-    "/{name}" bind { ws: Websocket ->
+    "/{name:.*}" bind { ws: Websocket ->
         val name = ws.upgradeRequest.path("name")!!
         val disposable = publisher.subscribe {
             if (it.path == "/$name") {
