@@ -6,8 +6,9 @@
 - Uses Websockets to broadcast requests received
 - Uses [mini.css](https://minicss.org/) as a lightweight framework
 - Renders the received requests on the left in reverse order
-- Has the ability to play/pause requests
-- Has the ability to clear existing requests
+- Can play/pause requests
+- Can clear existing requests
+- Can filter requests by payload
 
 ![](./docs/page.png)
 

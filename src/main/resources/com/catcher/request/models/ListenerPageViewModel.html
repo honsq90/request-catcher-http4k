@@ -21,13 +21,16 @@
             animation: new-item 2s;
         }
 
-        #socketStatus {
-            padding: 0;
-        }
-
         #requests-status {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            align-items: center;
+        }
+        #requests-filter {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         @keyframes new-item {
@@ -58,11 +61,11 @@
 <div class="row" id="requests">
     <input id="doc-drawer-checkbox" class="drawer" value="on" type="checkbox">
     <nav class="col-md-4" id="requests-navbar">
-        <div id="requests-status">
-            <h4 id="socketStatus">{{ status }}</h4>
-            <div style="padding: 0">
-                <button class="small primary" @click="recording = !recording" v-bind:disabled="!connected">
-                    {{recording ? "Pause" : "Continue"}}
+        <div id="requests-filter">
+            <input id="filterText" v-model="filterText" placeholder="Filter payload">
+            <div>
+                <button class="small primary" @click="listening = !listening" v-bind:disabled="!connected">
+                    {{listening ? "Pause" : "Listen"}}
                 </button>
                 <button class="small secondary" @click="clearRequests">Clear</button>
             </div>
@@ -79,6 +82,8 @@
         </a>
     </nav>
     <main class="col-md-8" id="requests-content">
+        <mark id="requests-status" v-bind:class="{ tertiary: connected && listening }">{{ status }}</mark>
+
         <div class="card fluid" v-bind:id="selectedRequest.uuid" v-if="selectedRequest">
             <h2 class="section double-padded">
                 {{ selectedRequest.timestamp }} - {{selectedRequest.method}} {{selectedRequest.path}}
@@ -113,26 +118,30 @@
                 requests: [],
                 selected: undefined,
                 connected: false,
-                recording: false,
+                listening: false,
+                filterText: "",
             };
         },
         computed: {
             reverseRequests() {
                 // cap off at 50 requests
-                return this.requests.reverse().filter((r, i) => i < 50);
+                return this.requests
+                    .reverse()
+                    .filter((r) => r.body.toLowerCase().includes(this.filterText.toLowerCase()))
+                    .filter((r, i) => i < 50);
             },
             selectedRequest() {
                 return this.requests.find((r) => r.uuid === this.selected);
             },
             status() {
                 if (this.connected) {
-                    if (this.recording) {
+                    if (this.listening) {
                         return `Listening to /${path}...`;
                     } else {
                         return `Paused listening to /${path}`;
                     }
                 } else {
-                    if (this.recording) {
+                    if (this.listening) {
                         return `Disconnected from /${path}`;
                     } else {
                         return `Waiting to connect to /${path}`;
@@ -150,7 +159,7 @@
             socket.addEventListener("open", () => {
                 setTimeout(() => {
                     this.connected = true;
-                    this.recording = true;
+                    this.listening = true;
                 }, 1500);
             });
             socket.addEventListener("close", () => {
@@ -158,7 +167,7 @@
             });
 
             socket.addEventListener("message", (message) => {
-                if (!this.recording) {
+                if (!this.listening) {
                     return;
                 }
                 const request = JSON.parse(message.data);
