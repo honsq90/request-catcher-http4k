@@ -17,8 +17,12 @@
             overflow-y: scroll;
         }
 
-        #requests-navbar a {
+        #requests-navbar a.new {
             animation: new-item 2s;
+        }
+
+        #socketStatus {
+            padding: 0;
         }
 
         #requests-status {
@@ -55,29 +59,44 @@
     <input id="doc-drawer-checkbox" class="drawer" value="on" type="checkbox">
     <nav class="col-md-4" id="requests-navbar">
         <div id="requests-status">
-            <h4 id="socketStatus">Waiting...</h4>
-            <button class="small" @click="clearRequests">Clear</button>
+            <h4 id="socketStatus">{{ status }}</h4>
+            <div style="padding: 0">
+                <button class="small primary" @click="recording = !recording" v-bind:disabled="!connected">
+                    {{recording ? "Pause" : "Continue"}}
+                </button>
+                <button class="small secondary" @click="clearRequests">Clear</button>
+            </div>
         </div>
-        <a v-bind:href="'#' + request.uuid" v-for="request in requests" v-bind:key="request.uuid">
-            {{ request.timestamp }}: {{request.method}} {{request.path}}
+        <a v-bind:href="'#' + request.uuid"
+           v-bind:key="request.uuid"
+           v-bind:class="{ new: index == 0 }"
+           v-for="(request, index) in reverseRequests"
+           v-on:click="selected = request.uuid"
+        >
+            <strong>{{request.method}} {{request.path}}</strong>
+            {{ request.timestamp }}
+            {{ request.source }}
         </a>
     </nav>
     <main class="col-md-8" id="requests-content">
-        <div class="card fluid" v-bind:id="request.uuid" v-for="request in requests" v-bind:key="request.uuid">
+        <div class="card fluid" v-bind:id="selectedRequest.uuid" v-if="selectedRequest">
             <h2 class="section double-padded">
-                {{ request.timestamp }} - {{request.method}} {{request.path}}
+                {{ selectedRequest.timestamp }} - {{selectedRequest.method}} {{selectedRequest.path}}
             </h2>
             <div class="section">
                 <div class="container">
                     <div class="row" style="word-break: break-all;">
-                        <div class="col-sm-12" v-for="header in request.headers">
+                        <div class="col-sm-12">
+                            <strong>Source</strong>: <span>{{ selectedRequest.source }}</span>
+                        </div>
+                        <div class="col-sm-12" v-for="header in selectedRequest.headers">
                             <strong>{{ header.key }}</strong>: <span>{{header.value}}</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="section">
-                {{ request.body }}
+                {{ selectedRequest.body }}
             </div>
         </div>
     </main>
@@ -87,22 +106,39 @@
     const path = `[[${model.name}]]`;
     const socketUrl = `ws://${window.location.host}/${path}`;
     const socket = new WebSocket(socketUrl);
-    socket.addEventListener("open", () => {
-        document.getElementById("socketStatus").innerText = `Listening to /${path}...`;
-    });
-    socket.addEventListener("close", () => {
-        document.getElementById("socketStatus").innerText = `Disconnected from /${path}`;
-    });
 
     const RequestList = {
         data() {
             return {
                 requests: [],
+                selected: undefined,
+                connected: false,
+                recording: false,
             };
         },
         computed: {
-            recentRequests() {
-                return this.requests.reverse();
+            reverseRequests() {
+                // cap off at 50 requests
+                return this.requests.reverse().filter((r, i) => i < 50);
+            },
+            selectedRequest() {
+                return this.requests.find((r) => r.uuid === this.selected);
+            },
+            status() {
+                if (this.connected) {
+                    if (this.recording) {
+                        return `Listening to /${path}...`;
+                    } else {
+                        return `Paused listening to /${path}`;
+                    }
+                } else {
+                    if (this.recording) {
+                        return `Disconnected from /${path}`;
+                    } else {
+                        return `Waiting to connect to /${path}`;
+                    }
+                }
+
             },
         },
         methods: {
@@ -111,8 +147,25 @@
             },
         },
         mounted() {
+            socket.addEventListener("open", () => {
+                setTimeout(() => {
+                    this.connected = true;
+                    this.recording = true;
+                }, 1500);
+            });
+            socket.addEventListener("close", () => {
+                this.connected = false;
+            });
+
             socket.addEventListener("message", (message) => {
-                this.requests.push(JSON.parse(message.data));
+                if (!this.recording) {
+                    return;
+                }
+                const request = JSON.parse(message.data);
+                this.requests.push(request);
+                if (!this.selected) {
+                    this.selected = request.uuid;
+                }
             });
         },
     };

@@ -30,7 +30,10 @@ fun Request.toDto(): CaughtRequest = CaughtRequest(
     path = this.uri.path,
     body = this.bodyString(),
     method = this.method.name,
-    source = this.source?.address ?: "Unknown",
+    source = this.header("x-forwarded-for")
+        ?: this.header("referer")
+        ?: this.source?.address
+        ?: "",
     headers = this.headers.toList().map { CaughtHeader(it.first, it.second) },
 )
 
