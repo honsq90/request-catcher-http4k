@@ -1,0 +1,62 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://unpkg.com/vue@next"></script>
+    <link rel="stylesheet" href="https://unpkg.com/bulma@0.9.3/css/bulma.min.css">
+    <title>Request Catcher</title>
+</head>
+
+<body>
+<section class="section" id="requests">
+    <article class="message" v-for="request in requests">
+        <div class="message-header">
+            <p> {{ request.timestamp }} - {{ request.method }} {{ request.path }}</p>
+        </div>
+        <div class="message-body">
+            <div class="columns">
+                <div class="column is-one-quarter" style="word-break: break-all;">
+                    <div v-for="header in request.headers">
+                        <strong>{{ header.key }}</strong>: <span>{{header.value}}</span>
+                    </div>
+                </div>
+                <div class="column">
+                    {{ request.body }}
+                </div>
+            </div>
+
+        </div>
+    </article>
+</section>
+<footer class="footer">
+    <div class="content has-text-centered">
+        <p id="socketStatus">
+            Waiting...
+        </p>
+    </div>
+</footer>
+
+<script>
+    const socketUrl = `ws://${window.location.host}/[[${model.name}]]`;
+    const socket = new WebSocket(socketUrl);
+    socket.addEventListener("open", () => {
+        document.getElementById("socketStatus").innerText = `Listening to ${socketUrl}...`;
+    });
+
+    const RequestList = {
+        data() {
+            return {
+                requests: [],
+            };
+        },
+        mounted() {
+            socket.addEventListener("message", (message) => {
+                this.requests.push(JSON.parse(message.data));
+            });
+        },
+    };
+
+    Vue.createApp(RequestList).mount('#requests');
+</script>
+</body>
+</html>

@@ -1,1 +1,7 @@
-# request-catcher-http4k
+# RequestCatcher
+
+## Package
+```
+./gradlew build
+```
+
