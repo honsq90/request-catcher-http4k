@@ -3,7 +3,7 @@ package com.catcher.request
 import com.catcher.request.dto.CaughtHeader
 import com.catcher.request.dto.CaughtRequest
 import com.catcher.request.models.HomePageViewModel
-import com.catcher.request.models.RequestCatcherPageViewModel
+import com.catcher.request.models.ListenerPageViewModel
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.reactivex.rxjava3.subjects.PublishSubject
 import org.http4k.core.*
@@ -55,7 +55,7 @@ val app: HttpHandler = routes(
             println("Viewing $name...")
             val renderer = ThymeleafTemplates().CachingClasspath()
             val view = Body.viewModel(renderer, TEXT_HTML).toLens()
-            val viewModel = RequestCatcherPageViewModel(name)
+            val viewModel = ListenerPageViewModel(name)
             Response(OK).with(view of viewModel)
         },
         "" bind POST to ::catcherHandler,
