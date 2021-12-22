@@ -11,6 +11,7 @@
             height: calc(100vh - 3.5625rem);
             overflow: hidden;
         }
+
         #requests-content {
             height: 100%;
             overflow-y: scroll;
@@ -18,6 +19,11 @@
 
         #requests-navbar a {
             animation: new-item 2s;
+        }
+
+        #requests-status {
+            display: flex;
+            justify-content: space-between;
         }
 
         @keyframes new-item {
@@ -37,14 +43,21 @@
 
 <header class="row">
     <a href="/" class="logo col-sm-3 col-md">Request Catcher - http4k</a>
-    <span class="col-sm col-md" style="align-self: center;">Built with <a href="https://www.http4k.org/">http4k</a>, <a href="https://v3.vuejs.org/">Vue.js</a> and <a href="https://minicss.org/">mini.css</a></span>
+    <span class="col-sm col-md" style="align-self: center;">
+        Built with <a href="https://www.http4k.org/">http4k</a>,
+        <a href="https://v3.vuejs.org/">Vue.js</a> and
+        <a href="https://minicss.org/">mini.css</a>
+    </span>
     <a class="button" href="https://github.com/honsq90/request-catcher-http4k" target="_blank">GitHub</a>
 </header>
 
 <div class="row" id="requests">
     <input id="doc-drawer-checkbox" class="drawer" value="on" type="checkbox">
     <nav class="col-md-4" id="requests-navbar">
-        <h3 id="socketStatus">Waiting...</h3>
+        <div id="requests-status">
+            <h4 id="socketStatus">Waiting...</h4>
+            <button class="small" @click="clearRequests">Clear</button>
+        </div>
         <a v-bind:href="'#' + request.uuid" v-for="request in requests" v-bind:key="request.uuid">
             {{ request.timestamp }}: {{request.method}} {{request.path}}
         </a>
@@ -88,8 +101,13 @@
             };
         },
         computed: {
-            recentRequests: function () {
+            recentRequests() {
                 return this.requests.reverse();
+            },
+        },
+        methods: {
+            clearRequests() {
+                this.requests = [];
             },
         },
         mounted() {
