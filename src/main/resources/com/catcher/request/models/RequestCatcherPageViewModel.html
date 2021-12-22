@@ -42,6 +42,9 @@
     socket.addEventListener("open", () => {
         document.getElementById("socketStatus").innerText = `Listening to ${socketUrl}...`;
     });
+    socket.addEventListener("close", () => {
+        document.getElementById("socketStatus").innerText = `Failed to connect to ${socketUrl}`;
+    });
 
     const RequestList = {
         data() {

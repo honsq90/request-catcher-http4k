@@ -44,9 +44,10 @@ private fun catcherHandler(request: Request): Response {
 val app: HttpHandler = routes(
     "/{name}" bind routes(
         "" bind GET to {
+            val name = it.path("name")
+            println("Viewing $name...")
             val renderer = ThymeleafTemplates().CachingClasspath()
             val view = Body.viewModel(renderer, TEXT_HTML).toLens()
-            val name = it.path("name")
             val viewModel = RequestCatcherPageViewModel(name)
             Response(OK).with(view of viewModel)
         },

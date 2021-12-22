@@ -2,6 +2,6 @@
 
 ## Package
 ```
-./gradlew build
+./gradlew build testZip
 ```
 

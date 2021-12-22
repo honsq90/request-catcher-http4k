@@ -1,0 +1,6 @@
+services:
+  catcher:
+    build:
+      context: .
+    ports:
+      - "9000:9000"
