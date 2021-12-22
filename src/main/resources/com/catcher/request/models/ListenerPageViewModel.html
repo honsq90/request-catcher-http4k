@@ -37,12 +37,14 @@
 
 <header class="row">
     <a href="/" class="logo col-sm-3 col-md">Request Catcher - http4k</a>
-    <span class="logo col-sm col-md" id="socketStatus">Waiting...</span>
+    <span class="col-sm col-md" style="align-self: center;">Built with <a href="https://www.http4k.org/">http4k</a>, <a href="https://v3.vuejs.org/">Vue.js</a> and <a href="https://minicss.org/">mini.css</a></span>
+    <a class="button" href="https://github.com/honsq90/request-catcher-http4k" target="_blank">GitHub</a>
 </header>
 
 <div class="row" id="requests">
     <input id="doc-drawer-checkbox" class="drawer" value="on" type="checkbox">
     <nav class="col-md-4" id="requests-navbar">
+        <h3 id="socketStatus">Waiting...</h3>
         <a v-bind:href="'#' + request.uuid" v-for="request in requests" v-bind:key="request.uuid">
             {{ request.timestamp }}: {{request.method}} {{request.path}}
         </a>
@@ -67,10 +69,6 @@
         </div>
     </main>
 </div>
-
-<footer class="sticky">
-    <p>Built with <a href="https://www.http4k.org/">http4k</a>, <a href="https://v3.vuejs.org/">Vue.js</a> and <a href="https://minicss.org/">mini.css</a></p>
-</footer>
 
 <script>
     const path = `[[${model.name}]]`;
