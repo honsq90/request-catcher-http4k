@@ -1,5 +1,7 @@
 # RequestCatcher
 
+![Docker Image Version (latest by date)](https://img.shields.io/docker/v/honsq90/request-catcher-http4k?label=docker&style=plastic)
+
 ## How it works
 - Uses [http4k](https://http4k.org) as a server
 - Uses [Vue.js](https://v3.vuejs.org) to augment the frontend
@@ -12,7 +14,13 @@
 
 ![](./docs/page.png)
 
-### Running via Docker
+### Running the published Docker image
+
+https://hub.docker.com/repository/docker/honsq90/request-catcher-http4k
+
+`docker run -p 9000:9000 honsq90/request-catcher-http4k`
+
+### Building and running locally
 ```
 ./gradlew build testZip
 docker compose up --build
