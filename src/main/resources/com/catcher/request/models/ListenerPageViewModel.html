@@ -26,6 +26,7 @@
             justify-content: center;
             align-items: center;
         }
+
         #requests-filter {
             display: flex;
             justify-content: center;
@@ -109,8 +110,6 @@
 
 <script>
     const path = `[[${model.name}]]`;
-    const socketUrl = `ws://${window.location.host}/${path}`;
-    const socket = new WebSocket(socketUrl);
 
     const RequestList = {
         data() {
@@ -119,6 +118,8 @@
                 selected: undefined,
                 connected: false,
                 listening: false,
+                retrying: false,
+                lastRetriedAt: "",
                 filterText: "",
             };
         },
@@ -134,6 +135,9 @@
                 return this.requests.find((r) => r.uuid === this.selected);
             },
             status() {
+                if (this.retrying) {
+                    return `Reconnecting to /${path}... ${this.lastRetriedAt && `Last retried at ${this.lastRetriedAt}`}`;
+                }
                 if (this.connected) {
                     if (this.listening) {
                         return `Listening to /${path}...`;
@@ -156,26 +160,41 @@
             },
         },
         mounted() {
-            socket.addEventListener("open", () => {
-                setTimeout(() => {
+            const connectToWebSocket = () => {
+                const socketUrl = `ws://${window.location.host}/${path}`;
+                const socket = new WebSocket(socketUrl);
+
+                socket.addEventListener("open", () => {
+                    this.retrying = false;
                     this.connected = true;
                     this.listening = true;
-                }, 1500);
-            });
-            socket.addEventListener("close", () => {
-                this.connected = false;
-            });
+                });
 
-            socket.addEventListener("message", (message) => {
-                if (!this.listening) {
-                    return;
-                }
-                const request = JSON.parse(message.data);
-                this.requests.push(request);
-                if (!this.selected) {
-                    this.selected = request.uuid;
-                }
-            });
+                socket.addEventListener("close", () => {
+                    this.connected = false;
+                    if (!this.retrying) {
+                        this.retrying = true;
+
+                        setInterval(() => {
+                            connectToWebSocket();
+                            this.lastRetriedAt = (new Date()).toISOString()
+                        }, 2500);
+                    }
+                });
+
+                socket.addEventListener("message", (message) => {
+                    if (!this.listening) {
+                        return;
+                    }
+                    const request = JSON.parse(message.data);
+                    this.requests.push(request);
+                    if (!this.selected) {
+                        this.selected = request.uuid;
+                    }
+                });
+            };
+
+            connectToWebSocket();
         },
     };
 
