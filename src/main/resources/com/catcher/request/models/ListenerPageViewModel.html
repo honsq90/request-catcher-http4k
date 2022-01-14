@@ -121,6 +121,7 @@
                 retrying: false,
                 lastRetriedAt: "",
                 filterText: "",
+                interval: "",
             };
         },
         computed: {
@@ -168,6 +169,7 @@
                     this.retrying = false;
                     this.connected = true;
                     this.listening = true;
+                    window.clearInterval(this.interval)
                 });
 
                 socket.addEventListener("close", (e) => {
@@ -176,7 +178,7 @@
                     if (!this.retrying && !this.connected) {
                         this.retrying = true;
 
-                        setInterval(() => {
+                        this.interval = setInterval(() => {
                             connectToWebSocket();
                             this.lastRetriedAt = (new Date()).toISOString();
                         }, 2500);
