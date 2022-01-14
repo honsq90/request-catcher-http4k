@@ -170,14 +170,15 @@
                     this.listening = true;
                 });
 
-                socket.addEventListener("close", () => {
+                socket.addEventListener("close", (e) => {
+                    console.error('Socket closed error: ', e.reason);
                     this.connected = false;
-                    if (!this.retrying) {
+                    if (!this.retrying && !this.connected) {
                         this.retrying = true;
 
                         setInterval(() => {
                             connectToWebSocket();
-                            this.lastRetriedAt = (new Date()).toISOString()
+                            this.lastRetriedAt = (new Date()).toISOString();
                         }, 2500);
                     }
                 });
@@ -191,6 +192,11 @@
                     if (!this.selected) {
                         this.selected = request.uuid;
                     }
+                });
+
+                socket.addEventListener("error", (err) => {
+                    console.error('Socket encountered error: ', err.message, 'Closing socket');
+                    socket.close();
                 });
             };
 
