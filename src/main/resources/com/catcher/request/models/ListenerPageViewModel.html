@@ -162,7 +162,8 @@
         },
         mounted() {
             const connectToWebSocket = () => {
-                const socketUrl = `ws://${window.location.host}/${path}`;
+                const protocol = window.location.protocol === "http" ? "ws" : "wss";
+                const socketUrl = `${protocol}://${window.location.host}/${path}`;
                 const socket = new WebSocket(socketUrl);
 
                 socket.addEventListener("open", () => {
