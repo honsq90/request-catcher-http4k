@@ -22,7 +22,7 @@ https://hub.docker.com/repository/docker/honsq90/request-catcher-http4k
 
 ### Building and running locally
 ```
-./gradlew build testZip
+./gradlew build distZip
 docker compose up --build
 ```
 
