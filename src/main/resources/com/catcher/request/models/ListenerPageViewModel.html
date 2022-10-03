@@ -2,7 +2,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://unpkg.com/vue/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/lodash/lodash.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
     <title>Request Catcher</title>
 
@@ -17,8 +18,19 @@
             overflow-y: scroll;
         }
 
+        #requests-navbar a {
+            border: solid transparent 1px;
+        }
+
         #requests-navbar a.new {
             animation: new-item 2s;
+        }
+
+        #requests-navbar a.selected {
+            /* from mini.css */
+            background: var(--nav-hover-back-color);
+            border-color: black;
+            color: black;
         }
 
         #requests-status {
@@ -73,7 +85,7 @@
         </div>
         <a v-bind:href="'#' + request.uuid"
            v-bind:key="request.uuid"
-           v-bind:class="{ new: index == 0 }"
+           v-bind:class="{ new: index == 0, selected: request.uuid == selected }"
            v-for="(request, index) in reverseRequests"
            v-on:click="selected = request.uuid"
         >
@@ -127,8 +139,7 @@
         computed: {
             reverseRequests() {
                 // cap off at 50 requests
-                return this.requests
-                    .reverse()
+                return _.orderBy(this.requests, ['timestamp'], ['desc'])
                     .filter((r) => r.body.toLowerCase().includes(this.filterText.toLowerCase()))
                     .filter((r, i) => i < 50);
             },

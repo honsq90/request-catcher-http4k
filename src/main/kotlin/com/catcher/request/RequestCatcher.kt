@@ -55,7 +55,6 @@ val app: HttpHandler = routes(
     "/{name:.*}" bind routes(
         "" bind GET to {
             val name = it.path("name")
-            println("Viewing $name...")
             val renderer = ThymeleafTemplates().CachingClasspath()
             val view = Body.viewModel(renderer, TEXT_HTML).toLens()
             val viewModel = ListenerPageViewModel(name)
